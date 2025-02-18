@@ -5,6 +5,6 @@ namespace CommandQuerySeparation.Commands
     public interface ICommandAsyncHandler<TCommand>
         where TCommand : ICommandDefinition
     {
-        Task<Result> Execute(TCommand command);
+        Task<Result> ExecuteAsync(TCommand command);
     }
 }
