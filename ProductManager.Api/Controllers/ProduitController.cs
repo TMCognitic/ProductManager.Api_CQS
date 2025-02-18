@@ -54,11 +54,11 @@ namespace ProductManager.Api.Controllers
             return NoContent();
         }
 
-        [HttpPut("{id}")]
-        [HttpPatch("{id}")]
-        public IActionResult Put(int id, ModifieProduitDto dto)
+        [HttpPut]
+        [HttpPatch]
+        public IActionResult Put(ModifieProduitDto dto)
         {
-            Result commandResult = _repository.Execute(new ModifierProduitCommand(id, dto.Nom, dto.Prix));
+            Result commandResult = _repository.Execute(new ModifierProduitCommand(dto.Id, dto.Nom, dto.Prix));
 
             if (commandResult.IsFailure)
                 return BadRequest(new { commandResult.ErrorMessage });
