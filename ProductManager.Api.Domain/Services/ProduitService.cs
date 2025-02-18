@@ -1,4 +1,5 @@
 ﻿using BStorm.Tools.Database;
+using CommandQuerySeparation.Results;
 using ProductManager.Api.Domain.Commands;
 using ProductManager.Api.Domain.Entities;
 using ProductManager.Api.Domain.Mappers;
@@ -18,29 +19,90 @@ namespace ProductManager.Api.Domain.Services
             _dbConnection.Open();
         }
 
-        public bool Execute(AjoutProduitCommand command)
+        public Result Execute(AjoutProduitCommand command)
         {
-            return 1 == _dbConnection.ExecuteNonQuery("AppUserSchema.AjoutProduit", true, command);
+            try
+            {
+                int rows = _dbConnection.ExecuteNonQuery("AppUserSchema.AjoutProduit", true, command);
+
+                if(rows != 1)
+                    return Result.Failure($"Quelque chose d'anormal s'est produit => nombre de ligne affectée {rows}");
+
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure(ex.Message, ex);
+            }
         }
 
-        public IEnumerable<Produit> Execute(ListeProduitQuery query)
+        public Result<IEnumerable<Produit>> Execute(ListeProduitQuery query)
         {
-            return _dbConnection.ExecuteReader("[AppUserSchema].[ListeProduits]", dr => dr.ToProduit(), true);
+            try
+            {
+                return Result<IEnumerable<Produit>>.Success(_dbConnection.ExecuteReader("[AppUserSchema].[ListeProduits]", dr => dr.ToProduit(), true).ToArray());
+            }
+            catch (Exception ex)
+            {
+                return Result<IEnumerable<Produit>>.Failure(ex.Message, ex);
+            }
         }
 
-        public Produit? Execute(DetailProduitQuery query)
+        public Result<Produit> Execute(DetailProduitQuery query)
         {
-            return _dbConnection.ExecuteReader("[AppUserSchema].[ProduitParId]", dr => dr.ToProduit(), true, query).SingleOrDefault();
+            try
+            {
+                Produit? produit = _dbConnection.ExecuteReader("[AppUserSchema].[ProduitParId]", dr => dr.ToProduit(), true, query).SingleOrDefault();
+
+                if(produit is null)
+                    return Result<Produit>.Failure("Produit non trouvé");
+
+                return Result<Produit>.Success(produit);
+            }
+            catch (Exception ex)
+            {
+                return Result<Produit>.Failure(ex.Message, ex);
+            }
         }
 
-        public bool Execute(SupprimerProduitCommand command)
+        public Result Execute(SupprimerProduitCommand command)
         {
-            return 1 == _dbConnection.ExecuteNonQuery("[AppUserSchema].[SupprimeProduit]", true, command);
+            try
+            {
+                int rows = _dbConnection.ExecuteNonQuery("[AppUserSchema].[SupprimeProduit]", true, command);
+
+                if (rows is 0)
+                    throw new Exception("Produit non trouvé");
+
+                if (rows != 1)
+                    return Result.Failure($"Quelque chose d'anormal s'est produit => nombre de ligne affectée {rows}");
+
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure(ex.Message, ex);
+            }
         }
 
-        public bool Execute(ModifierProduitCommand command)
+        public Result Execute(ModifierProduitCommand command)
         {
-            return 1 == _dbConnection.ExecuteNonQuery("[AppUserSchema].[ModifieProduit]", true, command);
+            try
+            {
+                int rows = _dbConnection.ExecuteNonQuery("[AppUserSchema].[ModifieProduit]", true, command);
+
+                if (rows is 0)
+                    throw new Exception("Produit non trouvé");
+
+                if (rows != 1)
+                    return Result.Failure($"Quelque chose d'anormal s'est produit => nombre de ligne affectée {rows}");
+
+                return Result.Success();
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure(ex.Message, ex);
+            }
         }
     }
 }

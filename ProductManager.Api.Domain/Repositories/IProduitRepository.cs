@@ -8,7 +8,7 @@ namespace ProductManager.Api.Domain.Repositories
 {
     public interface IProduitRepository :
         IQueryHandler<ListeProduitQuery, IEnumerable<Produit>>,
-        IQueryHandler<DetailProduitQuery, Produit?>,
+        IQueryHandler<DetailProduitQuery, Produit>,
         ICommandHandler<AjoutProduitCommand>,
         ICommandHandler<ModifierProduitCommand>,
         ICommandHandler<SupprimerProduitCommand>

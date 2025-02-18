@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CommandQuerySeparation.Results;
+using Microsoft.AspNetCore.Mvc;
 using ProductManager.Api.Domain.Commands;
 using ProductManager.Api.Domain.Entities;
 using ProductManager.Api.Domain.Queries;
@@ -21,25 +22,34 @@ namespace ProductManager.Api.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_repository.Execute(new ListeProduitQuery()).ToList());
+            Result<IEnumerable<Produit>> queryResult = _repository.Execute(new ListeProduitQuery());
+
+            if(queryResult.IsFailure)
+            {
+                return BadRequest(new { queryResult.ErrorMessage });
+            }
+
+            return Ok(queryResult.Content);
         }
 
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Produit? produit = _repository.Execute(new DetailProduitQuery(id));
+            Result<Produit> queryResult = _repository.Execute(new DetailProduitQuery(id));
 
-            if (produit is null)
-                return NotFound();
+            if (queryResult.IsFailure)
+                return BadRequest(new { queryResult.ErrorMessage });
 
-            return Ok(produit);
+            return Ok(queryResult.Content);
         }
 
         [HttpPost]
         public IActionResult Post(AjoutProduitDto dto)
         {
-            if(!_repository.Execute(new AjoutProduitCommand(dto.Nom, dto.Prix)))
-                return BadRequest(dto);
+            Result commandResult = _repository.Execute(new AjoutProduitCommand(dto.Nom, dto.Prix));
+
+            if(commandResult.IsFailure)
+                return BadRequest(new { commandResult.ErrorMessage });
 
             return NoContent();
         }
@@ -48,8 +58,10 @@ namespace ProductManager.Api.Controllers
         [HttpPatch("{id}")]
         public IActionResult Put(int id, ModifieProduitDto dto)
         {
-            if (!_repository.Execute(new ModifierProduitCommand(id, dto.Nom, dto.Prix)))
-                return BadRequest(dto);
+            Result commandResult = _repository.Execute(new ModifierProduitCommand(id, dto.Nom, dto.Prix));
+
+            if (commandResult.IsFailure)
+                return BadRequest(new { commandResult.ErrorMessage });
 
             return NoContent();
         }
@@ -57,8 +69,10 @@ namespace ProductManager.Api.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            if (!_repository.Execute(new SupprimerProduitCommand(id)))
-                return BadRequest();
+            Result commandResult = _repository.Execute(new SupprimerProduitCommand(id));
+
+            if (commandResult.IsFailure)
+                return BadRequest(new { commandResult.ErrorMessage });
 
             return NoContent();
         }

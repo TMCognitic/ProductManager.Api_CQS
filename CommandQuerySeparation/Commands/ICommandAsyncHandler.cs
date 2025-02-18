@@ -2,9 +2,9 @@
 
 namespace CommandQuerySeparation.Commands
 {
-    public interface ICommandHandler<TCommand>
+    public interface ICommandAsyncHandler<TCommand>
         where TCommand : ICommandDefinition
     {
-        Result Execute(TCommand command);
+        Task<Result> Execute(TCommand command);
     }
 }
